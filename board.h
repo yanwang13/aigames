@@ -80,7 +80,7 @@ public:
 			//int top = 0, hold = 0;
 			bool combine = true;
 			for (int c = 0; c < 3; c++) {
-				int base = row[c];
+				unsigned base = row[c];
 				if (base==0 && row[c+1]!=0) {
 					row[c] = row[c+1];
 					row[c+1] = 0;

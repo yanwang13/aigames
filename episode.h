@@ -11,9 +11,12 @@
 #include "agent.h"
 
 class statistic;
+class agent;
 
 class episode {
 friend class statistic;
+friend class agent;
+friend class rndenv;
 public:
 	episode() : ep_state(initial_state()), ep_score(0), ep_time(0) { ep_moves.reserve(10000); }
 

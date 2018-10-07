@@ -5,6 +5,8 @@
 #include "board.h"
 
 class action {
+friend class agent;
+friend class rndenv;
 public:
 	action(unsigned code = -1u) : code(code) {}
 	action(const action& a) : code(a.code) {}
