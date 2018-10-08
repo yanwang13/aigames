@@ -85,15 +85,18 @@ public:
 					row[c] = row[c+1];
 					row[c+1] = 0;
 					combine = false;
-				} else if (base==row[c+1] && combine){
-					//row[c] = row[c] + row[c+1];
-					row[c] = base? ++base : base;
-					row[c+1] = 0;
+				} else if ( base==0 && base==row[c+1] && combine ){
 					combine = false;
-				} else if (((base + row[c+1])==3) && combine) {
+				} else if( base>=3 && base==row[c+1] && combine){
+					row[c] = ++base;
+					row[c+1] = 0;
+					score += (1 << row[c]);
+					combine = false;
+				} else if( ((base + row[c+1])==3) && combine){
 					row[c] = 3;
 					row[c+1] = 0;
-					combine =  false;
+					score += (1 << row[c]);
+					combine = false;
 				}
 			}
 			//if (hold) tile[r][top] = hold;

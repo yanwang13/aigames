@@ -62,13 +62,14 @@ protected:
  * 2-tile: 90%
  * 4-tile: 10%
  */
- class tile_bag{
+class tile_bag{
 public:
 	tile_bag() : bag({false,false,false}) {}
 	void set(int num) {
 		bag[num] = true;
-		if(bag[0] && bag[1] && bag[2] )
+		if(bag[0] && bag[1] && bag[2] ){
 			bag = {false,false,false};
+		}
 		return;
 	}
 	bool get(int num) {
@@ -77,6 +78,9 @@ public:
 		else
 			return false;
 	}
+	void reset(){
+		bag = {false,false,false};
+	}
 private:
 	std::array<bool, 3> bag;
 };
@@ -84,23 +88,23 @@ private:
 class rndenv : public random_agent {
 public:
 	rndenv(const std::string& args = "") : random_agent("name=random role=environment " + args),
-		space({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), popup(1, 3) {}
+		space({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), popup(1, 3), env_tile_bag() {}
 		//slide_up({12, 13, 14, 15}), slide_down({0,1,2,3}), slide_left({3,7,11,15}), slide_right({0,4,8,12}), popup(1, 3) {}
 
 	//virtual action take_action(const board& after) {
 	virtual action take_action(const episode& game) {
 		const board& after = game.state();
-		
 		if(game.ep_moves.size()<=9) { //initial 9 tiles
 			std::shuffle(space.begin(), space.end(), engine);
+			board::cell tile;
+			
+			while(true){
+				tile = popup(engine);
+				if (env_tile_bag.get(tile-1)) continue; //see whether the tile has been used
+				else break; // grad a new tile
+			}
 			for (int pos : space) {
-				if (after(pos) != 0) continue;
-				board::cell tile;
-				while(true){
-					tile = popup(engine);
-					if (env_tile_bag.get(tile-1)) continue; //see whether the tile has been used
-					else break; // grad a new tile
-				}
+				if (after(pos) != 0) continue;				
 				env_tile_bag.set(tile-1); //take the tile out of the bag
 				return action::place(pos, tile);
 			}
@@ -124,20 +128,25 @@ public:
 			}
 						
 			std::shuffle(slide_space.begin(), slide_space.end(), engine);
-			for (int pos : slide_space) {
-				if (after(pos) != 0) continue;
-				board::cell tile;
-				while(true){
-					tile = popup(engine);
-					if (env_tile_bag.get(tile-1)) continue; //see whether the tile has been used
-					else break; // grad a new tile
-				}
-				env_tile_bag.set(tile-1); //take the tile out of the bag
-				return action::place(pos, tile);
-			}
-			return action();
 			
+			board::cell tile;
+			while(true){
+				tile = popup(engine);
+				if (env_tile_bag.get(tile-1)) continue; //see whether the tile has been used
+				else break; // grad a new tile
+			}
+			env_tile_bag.set(tile-1); //take the tile out of the bag
+			for (int slide_pos : slide_space) {
+				if (after(slide_pos) != 0) continue;
+				
+				return action::place(slide_pos, tile);
+			}
+			return action();	
 		}
+	}
+	
+	virtual void close_episode(const std::string& flag = "") {
+		env_tile_bag.reset();
 	}
 
 private:

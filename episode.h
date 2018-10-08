@@ -63,7 +63,8 @@ public:
 
 	time_t time(unsigned who = -1u) const {
 		time_t time = 0;
-		size_t i = 2;
+		//size_t i = 2;
+		size_t i = 9;
 		switch (who) {
 		case action::place::type:
 			if (ep_moves.size()) time += ep_moves[0].time, i = 1;
@@ -80,7 +81,8 @@ public:
 
 	std::vector<action> actions(unsigned who = -1u) const {
 		std::vector<action> res;
-		size_t i = 2;
+		//size_t i = 2;
+		size_t i = 9;
 		switch (who) {
 		case action::place::type:
 			if (ep_moves.size()) res.push_back(ep_moves[0]), i = 1;
