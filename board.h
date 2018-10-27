@@ -3,6 +3,7 @@
 #include <iostream>
 #include <iomanip>
 
+static const float MIN_FLOAT = -99999999;
 /**
  * array-based board for 2048
  *
@@ -47,6 +48,10 @@ public:
 
 public:
 
+	void index_board(){
+		for(int i=0;i<16;++i)
+			operator()(i) = i;
+	}
 	/**
 	 * place a tile (index value) to the specific position (1-d form index)
 	 * return 0 if the action is valid, or -1 if not
@@ -166,7 +171,7 @@ public:
 		out << "+------------------------+" << std::endl;
 		for (auto& row : b.tile) {
 			out << "|" << std::dec;
-			for (auto t : row) out << std::setw(6) << ((1 << t) & -2u);
+			for (auto t : row) out << std::setw(6) << ((1 << t) & -2u);/*((t > 3) ? (((1 << (t-3))*3) & -2u) : (t & -2u));*/
 			out << "|" << std::endl;
 		}
 		out << "+------------------------+" << std::endl;

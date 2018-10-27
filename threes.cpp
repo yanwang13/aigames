@@ -16,8 +16,9 @@
 #include "episode.h"
 #include "statistic.h"
 
+
 int main(int argc, const char* argv[]) {
-	std::cout << "2048-Demo: ";
+	std::cout << "Threes!-Demo: ";
 	std::copy(argv, argv + argc, std::ostream_iterator<const char*>(std::cout, " "));
 	std::cout << std::endl << std::endl;
 
@@ -55,9 +56,11 @@ int main(int argc, const char* argv[]) {
 		summary |= stat.is_finished();
 	}
 
-	player play(play_args);
+	//player play(play_args);
+	TD_player play(play_args);
 	rndenv evil(evil_args);
 
+	//play.init_weights(); //do I need it?
 	while (!stat.is_finished()) {
 		play.open_episode("~:" + evil.name());
 		evil.open_episode(play.name() + ":~");
@@ -74,6 +77,7 @@ int main(int argc, const char* argv[]) {
 		agent& win = game.last_turns(play, evil);
 		stat.close_episode(win.name());
 
+		play.update_episode();
 		play.close_episode(win.name());
 		evil.close_episode(win.name());
 	}
@@ -81,7 +85,6 @@ int main(int argc, const char* argv[]) {
 	if (summary) {
 		stat.summary();
 	}
-
 	if (save.size()) {
 		std::ofstream out(save, std::ios::out | std::ios::trunc);
 		out << stat;
