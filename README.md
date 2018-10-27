@@ -1,6 +1,3 @@
-# TDL2048-Demo
-Basic Environment for Game 2048 (Demo)<br>
-<p>
-Computer Games and Intelligence (CGI) Lab, NCTU, Taiwan<br>
-http://www.aigames.nctu.edu.tw/<br>
-<p>
+# TCG Projects
+Theory of Computer Games NCTU 2018 Fall<br>
+<p>Working with 2048-like games. Threes!<p>
