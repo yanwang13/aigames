@@ -2,7 +2,7 @@
 #include <array>
 #include <iostream>
 #include <iomanip>
-
+#include <cmath>
 /**
  * array-based board for threes 2x3
  *
@@ -11,7 +11,7 @@
  *  (3)  (4)  (5)
  *
  */
-class board {
+class board2x3 {
 public:
 	typedef uint32_t cell;
 	//typedef std::array<cell, 4> row;
@@ -22,10 +22,10 @@ public:
 	typedef int reward;
 
 public:
-	board() : tile(), attr(0) {}
-	board(const grid& b, data v = 0) : tile(b), attr(v) {}
-	board(const board& b) = default;
-	board& operator =(const board& b) = default;
+	board2x3() : tile(), attr(0) {}
+	board2x3(const grid& b, data v = 0) : tile(b), attr(v) {}
+	board2x3(const board2x3& b) = default;
+	board2x3& operator =(const board2x3& b) = default;
 
 	operator grid&() { return tile; }
 	operator const grid&() const { return tile; }
@@ -38,12 +38,12 @@ public:
 	data info(data dat) { data old = attr; attr = dat; return old; }
 
 public:
-	bool operator ==(const board& b) const { return tile == b.tile; }
-	bool operator < (const board& b) const { return tile <  b.tile; }
-	bool operator !=(const board& b) const { return !(*this == b); }
-	bool operator > (const board& b) const { return b < *this; }
-	bool operator <=(const board& b) const { return !(b < *this); }
-	bool operator >=(const board& b) const { return !(*this < b); }
+	bool operator ==(const board2x3& b) const { return tile == b.tile; }
+	bool operator < (const board2x3& b) const { return tile <  b.tile; }
+	bool operator !=(const board2x3& b) const { return !(*this == b); }
+	bool operator > (const board2x3& b) const { return b < *this; }
+	bool operator <=(const board2x3& b) const { return !(b < *this); }
+	bool operator >=(const board2x3& b) const { return !(*this < b); }
 
 public:
 
@@ -73,7 +73,7 @@ public:
 	}
 
 	reward slide_left() {
-		board prev = *this;
+		board2x3 prev = *this;
 		reward score = 0;
 		for (int r = 0; r < 2; r++) {
 			auto& row = tile[r];
@@ -110,7 +110,7 @@ public:
 		return score;
 	}
 	reward slide_up() {
-		board prev = *this;
+		board2x3 prev = *this;
 		reward score = 0;
 
 		for (int c = 0; c < 2; c++) {
@@ -175,7 +175,7 @@ public:
 	//void reverse() { reflect_horizontal(); reflect_vertical(); }
 
 public:
-	friend std::ostream& operator <<(std::ostream& out, const board& b) {
+	friend std::ostream& operator <<(std::ostream& out, const board2x3& b) {
 		out << "+------------------------+" << std::endl;
 		for (auto& row : b.tile) {
 			out << "|" << std::dec;
@@ -185,11 +185,11 @@ public:
 		out << "+------------------------+" << std::endl;
 		return out;
 	}
-	friend std::istream& operator >>(std::istream& in, board& b) {
+	friend std::istream& operator >>(std::istream& in, board2x3& b) {
 		for (int i = 0; i < 2*3; i++) {
 			while (!std::isdigit(in.peek()) && in.good()) in.ignore(1);
 			in >> b(i);
-			b(i) = std::log2(b(i));
+			b(i) = b(i) > 3 ? log2(b(i)/3)+3 : b(i);
 		}
 		return in;
 	}
