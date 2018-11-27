@@ -302,14 +302,14 @@ private:
 
 			//int result = action::place(pos, hint).apply(board);
 			else{ //only calculate those are possible
-				for(int new_hint: {1, 2, 3}){//new hint
+				for(int new_hint: {1, 2, 3}){//new hint for the next state
 					if(bag.get(new_hint-1))
 						continue;
 					else { //grab new tile
 						board2x3 b = board;
 						action::place(*pos, hint).apply(b);
 						get_before_expect(b, new_hint);
-						tmp = before_state.get_value(board, hint, 0, true);
+						tmp = before_state.get_value(b, new_hint, 0, true);
 
 						if(!std::isnan(tmp.avg)/*tmp.avg > -1*/){
 							if(count==0){
