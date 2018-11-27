@@ -113,7 +113,7 @@ public:
 		board2x3 prev = *this;
 		reward score = 0;
 
-		for (int c = 0; c < 2; c++) {
+		for (int c = 0; c < 3; c++) {
 			unsigned base = tile[0][c];
 			if (base==0 && tile[1][c]!=0) {
 				tile[0][c] = tile[1][c];
@@ -179,7 +179,7 @@ public:
 		out << "+------------------------+" << std::endl;
 		for (auto& row : b.tile) {
 			out << "|" << std::dec;
-			for (auto t : row) out << std::setw(6) << ((1 << t) & -2u);
+			for (auto t : row) out << std::setw(6) << t;//((1 << t) & -2u);
 			out << "|" << std::endl;
 		}
 		out << "+------------------------+" << std::endl;

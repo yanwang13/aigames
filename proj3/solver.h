@@ -8,7 +8,7 @@
 
 #define ROW 2
 #define COLUMN 3
-#define MAX_INDEX 6
+#define MAX_INDEX 10
 #define TABLE_SIZE MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX
 
 class state_type {
@@ -72,7 +72,8 @@ public:
 public:
 	class answer {
 	public:
-		answer() : min(-1.0/-1.0), avg(-1.0/-1.0), max(-1.0/-1.0) {}
+		//answer() : min(-1.0/1.0), avg(-1.0/1.0), max(-1.0/1.0) {}
+		answer() : min(0.0/0.0), avg(0.0/0.0), max(0.0/0.0) {} //isnan
 		answer(value_t min, value_t avg, value_t max) : min(min), avg(avg), max(max) {}
 		//answer(value_t min = -1.0/-1.0, value_t avg = -1.0/-1.0, value_t max = -1.0/-1.0) : min(min), avg(avg), max(max) {}
 	    friend std::ostream& operator <<(std::ostream& out, const answer& ans) {
@@ -83,7 +84,7 @@ public:
 		value_t min, avg, max;
 	};
 
-	/*class Transposition_Table
+	class Transposition_Table
 	{
 	public:
 		Transposition_Table(bool type):type(type){
@@ -96,7 +97,7 @@ public:
 			delete []  table;
 		}
 
-		answer* get_value(board2x3 board, int hint, int op, bool type){
+		/*answer* get_value(board2x3 board, int hint, int op, bool type){
 			long index = 0;
 			for(int i = 1; i < 6 ; ++i)
 				index = board(i) + (MAX_INDEX*index);
@@ -105,12 +106,23 @@ public:
 				return &table[ hint + index*MAX_INDEX ];
 			else
 				return &table[ op + (hint + index*MAX_INDEX )*3];
+		}*/
+
+		answer& get_value(board2x3 board, int hint, int op, bool type){
+			long index = 0;
+			for(int i = 1; i < 6 ; ++i)
+				index = board(i) + (MAX_INDEX*index);
+
+			if(type)
+				return table[ hint + index*MAX_INDEX ];
+			else
+				return table[ op + (hint + index*MAX_INDEX )*3];
 		}
 
 	private:
 		answer *table;
 		bool type;	
-	};*/
+	};
 
 	class tile_bag{
 	public:
@@ -142,27 +154,16 @@ public:
 	private:
 		std::array<bool, 3> bag;
 	};
-	/*class bag
-	{
-	public:
-		bag(){ status = 0; };
-		update_status(int tile){
 
-		}
-		~bag();
-		
-	public:
-		int status
-	};*/
 private:
-	answer& get_value(board2x3 board, int hint, int op, bool type){
+	/*answer& get_value(board2x3 board, int hint, int op, bool type){
 		if(type)
-			return before_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint];
+			return before_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint-1];
 		else
-			return after_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint][op];
-	}
+			return after_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint-1][op];
+	}*/
 
-	float calculate_expect(board2x3 board/*, bool terminal*/){
+	float calculate_expect(board2x3 board){
 
 		/*if(terminal){
 			float sum = 0;
@@ -174,71 +175,106 @@ private:
 
 			return sum;
 		}*/
-
-		//else{
-			float sum = 0;
-			int tile = 0;
-			for(int i= 0; i < 6 ; ++i){				
-				if(tile >= 3){
-					tile = board(i) > 3? ((1 << (board(i)-3))*3) : board(i);
-					sum += pow( 3 ,log2(tile/3) + 1);
-				}
+		float sum = 0;
+		int tile = 0;
+		for(int i= 0; i < 6 ; ++i){	
+			tile = board(i);			
+			if(tile >= 3){
+				//tile = tile > 3? ((1 << (tile-3))*3) : tile;
+				//std::cout << "tile: " << tile << std::endl;
+				sum += pow( 3 ,tile-2);
 			}
+		}
 
-			return sum;
-		//}
+		return sum;
 	}
-	//answer get_before_expect(board2x3 board, int hint){
+
+	/*void isomorphic_value(board2x3 board, int hint, int op, bool type, answer ans){
+		board2x3 right_hor = board;
+		board2x3 down_ver = board;
+		//board2x3 hor_ver = board;
+
+		right_hor.reflect_horizontal();
+		answer& tmp_ans = get_value(right_hor, hint, op, type);
+		tmp_ans = ans;
+
+		down_ver.reflect_vertical();
+		tmp_ans = get_value(down_ver, hint, op, type);
+		tmp_ans = ans;
+
+		right_hor.reflect_vertical();
+		tmp_ans = get_value(right_hor, hint, op, type);
+		tmp_ans = ans;
+
+		return;
+	}*/
 	void get_before_expect(board2x3 board, int hint){
-		answer& expect = get_value(board, hint, 0, true); // get the table reference //before_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint];
-		//answer& expect = before_state.get_value(board, hint, 0, true);
+		//answer& expect = get_value(board, hint, 0, true); // get the table reference //before_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint];
+		//answer* expect = before_state.get_value(board, hint, 0, true);
+		answer& expect = before_state.get_value(board, hint, 0, true);
+		
+		std::cout << "get_before_expect: " << expect << std::endl;
+		std::cout << board;
+		std::cout << "hint: " << hint << std::endl << std::endl;
 		//value_t ans_max = sum = 0.0;
 		//value_t ans_min = 1000000;
 		//value_t ans = -1;
 		answer tmp;
 		answer ans; //initalize tmp ans
-		//ans.min = 1000000;
-		//ans.max = 0.0;
-		//ans.avg = 0.0;
+		//ans->avg = -1.0;
 
 		bool terminal = true;
 
 		for(int op: {0, 1, 2, 3}){ //up right down left
 			board2x3 b = board;
+			//std::cout << "before slide > " << std::endl;
 			int reward = b.slide(op);
 
 			if(reward != -1){
-				terminal = false;
-
+				terminal = false;				
+				//action::slide(op).apply(b);
+				std::cout << "after slide op: " << op << std::endl;
+				std::cout << b;
+				std::cout << "reward=  " << reward <<std::endl;
 				get_after_expect(b, hint, op);
 				//tmp = after_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint][op];
-				//tmp = after_state.get_value(board, hint, op, false);
-				tmp = get_value(board, hint, op, false);
-				if(tmp.avg > ans.avg)//optimal action based on the average value
+				tmp = after_state.get_value(board, hint, op, false);
+				if(/*!std::isnan(ans->avg) || */tmp.avg > ans.avg)//optimal action based on the average value
 					ans = tmp;
 			}
 		}
 
 		if(terminal){
+			std::cout << "terminal node\n";
 			float temp_expect = calculate_expect(board/*, true*/);
 			expect = answer(temp_expect, temp_expect, temp_expect);
+			//std::cout << "value: " << expect <<std::endl;
 		}
 
 		else
 			expect = ans;
+		std::cout << "BEFORE STATE RETURN >" << std::endl;
+		std::cout << board;
+		std::cout << "hint: " << hint << std::endl;
+		std::cout << "answer: " << expect <<std::endl;
+		//isomorphic_value(board, hint, 0, true, expect);
 
 		return;
 	}
 
 	void get_after_expect(board2x3 board, int hint, int last_op){
-	    answer& expect = get_value(board, hint, last_op, false);
+	    //answer& expect = get_value(board, hint, last_op, false);
+	    //answer* expect = after_state.get_value(board, hint, last_op, false);
+	    answer& expect = after_state.get_value(board, hint, last_op, false);
 
 		// decide what tile can be put (tile bag)
-
+	    std::cout << "get_after_expect: " << expect << std::endl;
+		std::cout << board;
+		std::cout << "hint: " << hint << " /last op: " << last_op << std::endl;
 		//according to the last action decide where can put the tile
 		std::array<int,4> slide_space;
 		switch (last_op) {
-			case 0: slide_space = {0, 1, 2}; //slide up 0
+			case 0: slide_space = {3, 4, 5}; //slide up 0
 				break;
 			case 1: slide_space = {0, 3}; //slide right 1
 				break;
@@ -252,11 +288,12 @@ private:
 						
 		//std::shuffle(slide_space.begin(), slide_space.end(), engine);
 
-		value_t ans_max = 0.0;
+		//value_t ans_max = 0.0;
 		value_t sum = 0.0;
-		value_t ans_min = 1000000;
+		//value_t ans_min = 10000;
 		int count  = 0;
 		answer tmp;
+		answer ans;
 
 		bag.set(hint-1);//set hint tile to be used
 		for(auto pos = slide_space.begin(); pos != slide_space.end(); ++pos){ //place the hint tile
@@ -269,45 +306,64 @@ private:
 					if(bag.get(new_hint-1))
 						continue;
 					else { //grab new tile
-						get_before_expect(board, new_hint);
-						tmp = get_value(board, hint, 0, true);
+						board2x3 b = board;
+						action::place(*pos, hint).apply(b);
+						get_before_expect(b, new_hint);
+						tmp = before_state.get_value(board, hint, 0, true);
 
-						if(tmp.avg > -1){
-							ans_max = tmp.max > ans_max ? tmp.max : ans_max;
-							ans_min = tmp.min < ans_min ? tmp.min : ans_min;
-							sum += tmp.avg;
+						if(!std::isnan(tmp.avg)/*tmp.avg > -1*/){
+							if(count==0){
+								ans = tmp;
+								sum = tmp.avg;
+							}
+							else{
+								ans.max = tmp.max > ans.max ? tmp.max : ans.max;
+								ans.min = tmp.min < ans.min ? tmp.min : ans.min;
+								sum += tmp.avg;
+							}							
 							++count;
 						}
 					}
 						
 				} 
-					
-				++count;
 			}
 		}
 		bag.unset(hint-1);
 
-		expect = answer(ans_min, sum/float(count), ans_max);
-
+		if(count>0)
+			expect = answer(ans.min, sum/float(count), ans.max);
+		//isomorphic_value(board, hint, last_op, false, expect);
+		std::cout << "AFTER STATE RETURN >" << std::endl;
+		std::cout << board;
+		std::cout << "hint: " << hint << "last op: " << last_op << std::endl;
+		std::cout << "answer: " << expect <<std::endl;
 		return;
 	}
 
 public:
-	solver(const std::string& args)/*:before_state(true), after_state(false) */{
+	solver(/*const std::string& args*/):before_state(true), after_state(false){
 		// TODO: explore the tree and save the result
 		//answer init;
-		//for(auto it = before_state.begin(); it != before_state.end(); ++it )
-		//	*it = init;
+		/*answer *point = &before_state[0][0][0][0][0][0][0];
+		for(int i=0;i<MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*3;++i){
+			std::cout << *point << std::endl;
+			++point;
+		}*/
 		//for(auto it = after_state.begin(); it != after_state.end(); ++it )
 		//	*it = init;
+		//for()
 		for(int pos = 0; pos < ROW*COLUMN ; ++pos){
 			for(int tile = 1; tile <4 ; ++tile){
 				board2x3 board;
+				std::cout << board << std::endl;
 				action::place(pos, tile).apply(board);
+				std::cout << board << std::endl;
+				bag.set(tile-1);
 				for(int h = 1; h <4 ;++h){
 					if(h!=tile)
 						get_before_expect(board, h);
-				}				
+				}
+				bag.unset(tile-1);				
 			}
 		}
 
@@ -325,7 +381,7 @@ public:
 
 		// for a legal state, return its three values.
 //		return { min, avg, max };
-		answer invalid(-1, -1, -1);
+		answer invalid;
 		//check if it is illegal board
 		int tile;
 		for(int i = 0; i < 2*3; ++i){
@@ -336,30 +392,22 @@ public:
 			}
 		}
 
-		/*if(type.is_before() && is_legal_before_state(cur_board)){
-			return get_before_expect(cur_board);
+		//answer &ans;
+		if(type.is_before()){
+			//ans = before_state.get_value(board, hint, 0, true);
+			return before_state.get_value(board, hint, 0, true);;
 		}
-		else if(type.is_after() && is_legal_after_state(cur_board)){
-			return get_after_expect(cur_board);
-		}*/
-
-		if(type.is_before())
-			return before_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint];
-			//get_value(cur_board, hint, 0, true);		
+			//return before_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint];	
 			//return before_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint];
 		else{
 			for(int i = 0 ;i < 4; ++i){ //valid answer according to last action
-				answer &ans = after_state[board(0)][board(1)][board(2)][board(3)][board(4)][board(5)][hint][i];
-				if(ans.avg > -1)
+				answer& ans = after_state.get_value(board, hint, i, false);
+				if(!std::isnan(ans.avg))
 					return ans;
 			}
 			return invalid;
 		}
 
-// for a legal state, return its three values.
-//		return { min, avg, max };
-// for an illegal state, simply return {}
-//		return {};
 	}
 
 
@@ -367,10 +415,10 @@ private:
 	// TODO: place your transposition table here
 	//std::vector<answer> before_state;
 	//std::vector<answer> after_state;
-	answer before_state[MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][3]; //[board][hint]
-	answer after_state[MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][3][4]; //[board][hint][last action]
-	//Transposition_Table before_state;
-	//Transposition_Table after_state;
+	//answer before_state[MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][3]; //[board][hint]
+	//answer after_state[MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][MAX_INDEX][3][4]; //[board][hint][last action]
+	Transposition_Table before_state;
+	Transposition_Table after_state;
 	tile_bag bag;
 };
 
