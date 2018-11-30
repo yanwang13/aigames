@@ -370,17 +370,16 @@ private:
 	}
 
 public:
-	solver(/*const std::string& args*/):before_state(true), after_state(false){
-		// TODO: explore the tree and save the result
-		//answer init;
-		/*answer *point = &before_state[0][0][0][0][0][0][0];
-		for(int i=0;i<MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*MAX_INDEX*3;++i){
-			std::cout << *point << std::endl;
-			++point;
-		}*/
-		//for(auto it = after_state.begin(); it != after_state.end(); ++it )
-		//	*it = init;
-		//for()
+	solver():before_state(true), after_state(false){
+
+		//answer& expect = after_state.get_value(board2x3(), h, 0, false);
+		answer expect;
+		value_t sum = 0.0;
+		int count  = 0;
+		answer tmp;
+		answer ans;
+		//bool valid = false;
+
 		for(int pos = 0; pos < ROW*COLUMN ; ++pos){
 			for(int tile = 1; tile <4 ; ++tile){
 				board2x3 board;
@@ -390,13 +389,47 @@ public:
 				//std::cout << board << std::endl;
 				bag.set(tile-1);
 				for(int h = 1; h <4 ;++h){
-					if(h!=tile){
-						answer& expect = after_state.get_value(board, h, 0, false);
-						expect = get_before_expect(board, h);
+
+					if(h==tile) continue;
+
+					else{
+						
+						tmp = get_before_expect(board, h);
+
+						if(!std::isnan(tmp.avg)/*tmp.avg > -1*/){
+							//std::cout << "before_state new_hint("<< hint << ") tmp: " << tmp << std::endl;
+							if(count==0){
+								ans = tmp;
+								sum = tmp.avg;
+							}
+							else{
+								ans.max = tmp.max > ans.max ? tmp.max : ans.max;
+								ans.min = tmp.min < ans.min ? tmp.min : ans.min;
+								sum += tmp.avg;
+							}
+							//std::cout << "after update >>  " << ans << std::endl;							
+							++count;
+						}
 					}
+
+
 				}
 				bag.unset(tile-1);				
 			}
+		}
+
+		if(count>0)
+			expect = answer(ans.min, sum/count, ans.max);
+		//if(!valid)
+		//	expect = answer(-1, -1, -1);
+
+		board2x3 board;
+		for(int i = 1 ; i < 4 ; ++i){
+			//for(int j = 0 ; j < 4 ; ++j){
+				answer& result = after_state.get_value(board, i, 0, false);
+				result = expect;
+			//}
+			
 		}
 
 		std::cout << "solver is initialized." << std::endl << std::endl;
