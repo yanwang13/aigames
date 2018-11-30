@@ -4,7 +4,7 @@
 #include <cmath>
 #include "board2x3.h"
 #include <numeric>
-#include "action.h"
+//#include "action.h"
 
 #define ROW 2
 #define COLUMN 3
