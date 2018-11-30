@@ -33,10 +33,10 @@ int main(int argc, const char* argv[]) {
 	board2x3 state;
 	state_type type;
 	state_hint hint(state);
-	std::cout << std::setprecision(3);
+	//std::cout << std::setprecision(3);
 	while (std::cin >> type >> state >> hint) {
 		auto value = solve.solve(state, type);
-		std::cout << type << " " << state << " " << hint;
+		std::cout << type << " " << state << hint;
 		std::cout << " = " << value << std::endl;
 	}
 
