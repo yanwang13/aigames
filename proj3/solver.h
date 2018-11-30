@@ -67,7 +67,8 @@ private:
 
 class solver {
 public:
-	typedef float value_t;
+	//typedef float value_t;
+	typedef double value_t;
 
 public:
 	class answer {
