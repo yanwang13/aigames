@@ -176,13 +176,17 @@ public:
 
 public:
 	friend std::ostream& operator <<(std::ostream& out, const board2x3& b) {
-		out << "+------------------------+" << std::endl;
+		/*out << "+------------------------+" << std::endl;
 		for (auto& row : b.tile) {
 			out << "|" << std::dec;
 			for (auto t : row) out << std::setw(6) << t;//((1 << t) & -2u);
 			out << "|" << std::endl;
 		}
-		out << "+------------------------+" << std::endl;
+		out << "+------------------------+" << std::endl;*/
+		for (auto&  row : b.tile){
+			for (auto t : row)
+				out << (t > 3 ? ((1<<(t-3))*3) : t ) << " ";
+		}
 		return out;
 	}
 	friend std::istream& operator >>(std::istream& in, board2x3& b) {
