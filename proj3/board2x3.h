@@ -99,7 +99,6 @@ public:
 					combine = false;
 				}
 			}
-			//if (hold) tile[r][top] = hold;
 		}
 		return (*this != prev) ? score : -1;
 	}
@@ -136,14 +135,6 @@ public:
 		reflect_vertical();
 		return score;
 	}
-
-	/*void transpose() {
-		for (int r = 0; r < 4; r++) {
-			for (int c = r + 1; c < 4; c++) {
-				std::swap(tile[r][c], tile[c][r]);
-			}
-		}
-	}*/
 
 	void reflect_horizontal() {
 		std::swap(tile[0][0], tile[0][2]);
