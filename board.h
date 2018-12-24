@@ -58,7 +58,7 @@ public:
 	 */
 	reward place(unsigned pos, cell tile) {
 		if (pos >= 16) return -1;
-		if (tile != 1 && tile != 2 && tile!=3) return -1;
+		if (tile<1 || tile > 12/*tile != 1 && tile != 2 && tile!=3*/) return -1;
 		operator()(pos) = tile;
 		return 0;
 	}
@@ -171,7 +171,7 @@ public:
 		out << "+------------------------+" << std::endl;
 		for (auto& row : b.tile) {
 			out << "|" << std::dec;
-			for (auto t : row) out << std::setw(6) << ((1 << t) & -2u);/*((t > 3) ? (((1 << (t-3))*3) & -2u) : (t & -2u));*/
+			for (auto t : row) out << std::setw(6) << t;//((1 << t) & -2u);/*((t > 3) ? (((1 << (t-3))*3) & -2u) : (t & -2u));*/
 			out << "|" << std::endl;
 		}
 		out << "+------------------------+" << std::endl;

@@ -64,20 +64,28 @@ protected:
 	std::default_random_engine engine;
 };
 
-/**
- * random environment
- * add a new random tile to an empty cell
- * 2-tile: 90%
- * 4-tile: 10%
- */
 class tile_bag{
 public:
-	tile_bag() : bag({false,false,false}) {}
-	void set(int num) {
-		bag[num] = true;
-		if(bag[0] && bag[1] && bag[2] ){
-			bag = {false,false,false};
-		}
+	tile_bag(){
+		reset();
+	}
+	void set(int index) {
+		//for(int i=0;i<12;++i){
+			//std::cout << bag[i] << " ";
+		//}
+		bag[index] = true;
+		++count;
+		//std::cout << " set (" << index << ") ";
+		if(count==12)
+			reset();
+		/*int i;
+		for(i=0;i<12;++i)
+			if(bag[i]==false) break;
+		if(i==12){
+			reset();
+			//std::cout << "reset";
+		}*/
+		//std::cout << std::endl;
 		return;
 	}
 	bool get(int num) {
@@ -86,42 +94,116 @@ public:
 		else
 			return false;
 	}
+	/*int get(int num) {
+		num = num * 4;
+		int i;
+		for(i=0;i<4;++i)
+			if(!bag[num+i]) break;//return num+i;
+
+		if(i==4) // this tile cannot be picked
+			return -1;
+		else
+			return num+i;
+	}*/
+	int get_count(){
+		return count;
+	}
 	void reset(){
-		bag = {false,false,false};
+		//bag = {false,false,false};
+		for(int i=0;i<12;++i)
+			bag[i] = false;
+		count = 0;
+		//std::cout<< "reset bag ";
 	}
 private:
-	std::array<bool, 3> bag;
+	std::array<bool, 12> bag;
+	int count;
+};
+
+class bonus_bag
+{
+public:
+	bonus_bag():bonus_popup(1, 21){}
+
+	void init(){
+		//bonus.push_back(4); //put the first bonus tile "6"
+	}
+
+	int popup_bonus(){
+		//std::cout << " popup_bonus ";
+		int flag = bonus_popup(b_engine);
+		if(flag==21){
+			if(bonus.size()>1) std::shuffle(bonus.begin(), bonus.end(), b_engine);
+			return bonus.front();
+		}
+		else 
+			return 0;
+	}
+
+	void add_bonus(int tile){
+		bonus.push_back(tile-3);
+		//max_tile = tile;
+	}
+
+	void reset(){
+		bonus.push_back(4);
+		bonus.erase(bonus.begin(), bonus.begin()+bonus.size()-1);
+	}
+
+	/*int get_max_tile(){
+		return max_tile;
+	}*/
+private:
+	std::default_random_engine b_engine;
+	std::uniform_int_distribution<int> bonus_popup;
+	std::vector<int> bonus;
+	//int max_tile;
 };
 
 class rndenv : public random_agent {
 public:
 	rndenv(const std::string& args = "") : random_agent("name=random role=environment " + args),
-		space({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), popup(1, 3), env_tile_bag() {}
+		space({ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }), popup(0, 11),/*popup(1, 12),*//* bonus_popup(1, 21),*/
+		env_tile_bag(), bonus_tile_bag(), max_tile(0) {}
 		//slide_up({12, 13, 14, 15}), slide_down({0,1,2,3}), slide_left({3,7,11,15}), slide_right({0,4,8,12}), popup(1, 3) {}
 
 	//virtual action take_action(const board& after) {
 	virtual action take_action(const episode& game) {
 		const board& after = game.state();
-		if(game.ep_moves.size()<=9) { //initial 9 tiles
+		if(game.ep_moves.size()<9) { //initial 9 tiles + 1 hint tile
 			std::shuffle(space.begin(), space.end(), engine);
 			board::cell tile;
 			
-			while(true){
+			/*while(true){
 				tile = popup(engine);
 				if (env_tile_bag.get(tile-1)) continue; //see whether the tile has been used
 				else break; // grad a new tile
-			}
+			}*/
+			tile = generate_normal_tile();
+			//std::cout << tile << " ";
+
 			for (int pos : space) {
-				if (after(pos) != 0) continue;				
-				env_tile_bag.set(tile-1); //take the tile out of the bag
-				return action::place(pos, tile);
+				if (after(pos) != 0) continue;
+				else{
+					if (game.ep_moves.size()==8){
+						hint = generate_normal_tile();
+						//std::cout << hint << " ";
+						//std::cout << "first hint: " << hint << std::endl;
+					} 
+						
+					return action::place(pos, tile);
+				}				
+				//env_tile_bag.set(tile-1); //take the tile out of the bag
+				//return action::place(pos, tile);
 			}
+
+			
 			return action();
 		} else {
+			//According to the player's last action, determine where can put tile
 			std::array<int,4> slide_space;
-			//const char* cc = game.ep_moves.back().code.code;
-			//const char* opc = "URDL";
-			//unsigned oper = std::find(opc, opc + 4, *(++cc)) - opc;
+			
+			//if(game.ep_moves.back().reward )
 			switch (game.ep_moves.back().code.code & 0b11) {
 				case 0: slide_space = {12, 13, 14, 15}; //slide up 0
 					break;
@@ -136,18 +218,35 @@ public:
 			}
 						
 			std::shuffle(slide_space.begin(), slide_space.end(), engine);
+
+			//Generate the hint tile
+			check_max_tile(game.state());
 			
-			board::cell tile;
-			while(true){
-				tile = popup(engine);
-				if (env_tile_bag.get(tile-1)) continue; //see whether the tile has been used
-				else break; // grad a new tile
-			}
-			env_tile_bag.set(tile-1); //take the tile out of the bag
+			board::cell tile = 0;
+			///////////////////////
+			if(max_tile>=7) //if check bonus tile is needed, whenever max tile is larger than 48
+				tile = bonus_tile_bag.popup_bonus();
+			if(tile==0) tile = generate_normal_tile();
+			//std::cout << tile << " ";
+			/*{ //add normal tile
+				while(true){
+					tile = popup(engine);
+					if (env_tile_bag.get(tile-1)) continue; //see whether the tile has been used
+					else break; // grad a new tile
+				}
+				env_tile_bag.set(tile-1); //take the tile out of the bag
+			}*/			
+			////////////////////////
 			for (int slide_pos : slide_space) {
 				if (after(slide_pos) != 0) continue;
+				else{
+					int cur = hint;
+					hint = tile;
+					//std::cout << game.ep_moves.size() << " curren tile: " << cur << " hint tile: " << hint << std::endl;
+					//if(env_tile_bag.get_count()==12) env_tile_bag.reset();
+					return action::place(slide_pos, cur);
+				}
 				
-				return action::place(slide_pos, tile);
 			}
 			return action();	
 		}
@@ -155,13 +254,49 @@ public:
 	
 	virtual void close_episode(const std::string& flag = "") {
 		env_tile_bag.reset();
+		bonus_tile_bag.reset();
+		max_tile = 0;
+		hint = 0;
+		//std::cout << "episode end\n";
+	}
+
+	int generate_normal_tile(){
+		int /*tile,*/ index;
+		while(true){
+			index = popup(engine); //-1;
+			if (env_tile_bag.get(index)) continue;
+			//index = env_tile_bag.get(tile-1);
+			//if (index==-1) continue; //see whether the tile has been used
+			else break; // grad a new tile
+		}
+		env_tile_bag.set(index); //take the tile out of the bag
+		return index/4 + 1;
+	}
+
+	void check_max_tile(const board& current){
+		unsigned int max = max_tile;
+		for(int i=0;i<16;++i)
+			if(current(i) > max) max = current(i);
+
+		if(max >=7 && max > max_tile){
+			bonus_tile_bag.add_bonus(max);
+			max_tile = max;
+			//std::cout << "max tile: " << max;
+			//std::cout << current;
+		}
+		return;
 	}
 
 private:
 	std::array<int, 16> space;
 	//std::array<int, 4> slide_up, slide_down, slide_left, slide_right;
 	std::uniform_int_distribution<int> popup;
+	//std::uniform_int_distribution<int> bonus_popup;
 	tile_bag env_tile_bag;
+	bonus_bag bonus_tile_bag;
+	//bool bonus_trigger;
+	unsigned int max_tile;
+	int hint;
 };
 
 /**
@@ -279,27 +414,6 @@ public:
 		if(best->reward()==-1) return action();
 		else return action::slide(best->action());
 	}
-	/*virtual action select_best_move(const episode& game) { //choose the move that cause best value
-		const board& before = game.state()
-		int best_reward = 0;
-		float best_v = MIN_FLOAT;
-		for(int op:{0, 1, 2, 3}){
-			int tmp_reward = before.slide(op);
-			if(tmp_reward != -1){
-				float tmp_v = get_next_step() + tmp_reward;
-				if(tmp_v > best_v){
-					best_op = op;
-					best_v = tmp_v;
-					best_reward = tmp_reward
-				}
-			}
-		}
-		
-		board after(before);
-		after_state.push_back(board(before.));
-		if(best_reward==-1) return action();
-		else return action::slide(op);
-	}*/
 
 	/**
 	 * update the tuple network by an episode
@@ -417,6 +531,7 @@ public:
 		net.resize(size);
 		for (iso_pattern& p : net) in >> p;
 		in.close();
+		std::cout << "load weights success\n";
 	}
 	virtual void save_weights(const std::string& path) {
 		std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc);
@@ -425,6 +540,7 @@ public:
 		out.write(reinterpret_cast<char*>(&size), sizeof(size));
 		for (iso_pattern& p : net) out << p;
 		out.close();
+		std::cout << "save weights success\n";
 	}
 
 
